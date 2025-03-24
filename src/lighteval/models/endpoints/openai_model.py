@@ -85,13 +85,16 @@ class OpenAIModelConfig:
 
 
 class OpenAIClient(LightevalModel):
-    _DEFAULT_MAX_LENGTH: int = 4096
+    _DEFAULT_MAX_LENGTH: int = 20000
 
     def __init__(self, config: OpenAIModelConfig, env_config) -> None:
-        self.client = OpenAI(api_key=config.api_key, base_url=config.base_url)
+        self.client = OpenAI(api_key=config.api_key, base_url="https://api.deepinfra.com/v1/openai")
         self.config = config
         self.generation_parameters = config.generation_parameters
         self.sampling_params = self.generation_parameters.to_vllm_openai_dict()
+        self.sampling_params.pop("max_new_tokens", None)
+        
+        print(self.sampling_params)
 
         self.model_info = ModelInfo(
             model_name=config.model,
@@ -104,11 +107,14 @@ class OpenAIClient(LightevalModel):
         self.API_RETRY_MULTIPLIER = 2
         self.CONCURENT_CALLS = 100
         self.model = config.model
+
         try:
             self._tokenizer = tiktoken.encoding_for_model(self.model)
         except KeyError:
-            self._tokenizer = AutoTokenizer.from_pretrained(self.model)
-        self.pairwise_tokenization = False
+            # Explicitly specify the tokenizer that matches your custom endpoint/model
+            self._tokenizer = AutoTokenizer.from_pretrained("deepseek-ai/DeepSeek-R1-Distill-Qwen-14B")
+
+        self.pairwise_tokenization = True
 
     def __call_api(self, prompt, return_logits, max_new_tokens, num_samples, logit_bias):
         for _ in range(self.API_MAX_RETRY):
@@ -117,7 +123,7 @@ class OpenAIClient(LightevalModel):
                 response = self.client.chat.completions.create(
                     model=self.model,
                     messages=[{"role": "user", "content": prompt}],
-                    max_tokens=max_new_tokens if max_new_tokens > 0 else None,
+                    max_tokens=8192,
                     logprobs=return_logits,
                     logit_bias=logit_bias,
                     n=num_samples,
@@ -225,7 +231,7 @@ class OpenAIClient(LightevalModel):
     @property
     def max_length(self) -> int:
         """Return the maximum sequence length of the model."""
-        return 4096
+        return self._DEFAULT_MAX_LENGTH
 
     def loglikelihood(
         self, requests: list[LoglikelihoodRequest], override_bs: Optional[int] = None
