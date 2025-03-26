@@ -65,8 +65,8 @@ if is_openai_available():
 class OpenAIModelConfig:
     model: str
     generation_parameters: GenerationParameters = None
-    base_url: str = "https://api.openai.com/v1"
-    api_key: str = os.environ.get("OPENAI_API_KEY", None)
+    base_url: str = "http://localhost:8081/v1"
+    api_key: str = "dummy-key"
 
     def __post_init__(self):
         if not self.generation_parameters:
@@ -88,14 +88,15 @@ class OpenAIClient(LightevalModel):
     _DEFAULT_MAX_LENGTH: int = 20000
 
     def __init__(self, config: OpenAIModelConfig, env_config) -> None:
-        self.client = OpenAI(api_key=config.api_key, base_url=config.base_url)
+        self.client = OpenAI(api_key="dummy-key", base_url="http://localhost:8081/v1")
         self.config = config
         self.generation_parameters = config.generation_parameters
         self.sampling_params = self.generation_parameters.to_vllm_openai_dict()
         self.sampling_params.pop("max_new_tokens", None)
         
         print(self.sampling_params)
-
+        print("config: ", self.config)
+        
         self.model_info = ModelInfo(
             model_name=config.model,
             model_sha="",
