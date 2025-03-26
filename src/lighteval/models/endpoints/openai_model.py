@@ -88,7 +88,7 @@ class OpenAIClient(LightevalModel):
     _DEFAULT_MAX_LENGTH: int = 20000
 
     def __init__(self, config: OpenAIModelConfig, env_config) -> None:
-        self.client = OpenAI(api_key=config.api_key, base_url="https://api.deepinfra.com/v1/openai")
+        self.client = OpenAI(api_key=config.api_key, base_url=config.base_url)
         self.config = config
         self.generation_parameters = config.generation_parameters
         self.sampling_params = self.generation_parameters.to_vllm_openai_dict()
