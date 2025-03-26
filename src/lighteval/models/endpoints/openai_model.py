@@ -85,7 +85,7 @@ class OpenAIModelConfig:
 
 
 class OpenAIClient(LightevalModel):
-    _DEFAULT_MAX_LENGTH: int = 20000
+    _DEFAULT_MAX_LENGTH: int = 32768
 
     def __init__(self, config: OpenAIModelConfig, env_config) -> None:
         self.client = OpenAI(api_key="dummy-key", base_url="http://localhost:8081/v1")
