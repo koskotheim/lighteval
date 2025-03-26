@@ -123,7 +123,7 @@ class OpenAIClient(LightevalModel):
                 response = self.client.chat.completions.create(
                     model=self.model,
                     messages=[{"role": "user", "content": prompt}],
-                    max_tokens=8192,
+                    max_tokens=self.max_length,
                     logprobs=return_logits,
                     logit_bias=logit_bias,
                     n=num_samples,
